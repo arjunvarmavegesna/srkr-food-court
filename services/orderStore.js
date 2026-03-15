@@ -1,101 +1,60 @@
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+const admin = require('firebase-admin');
 
-const DATA_FILE = path.join(__dirname, '../data/orders.json');
-const dataDir   = path.dirname(DATA_FILE);
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-
-function loadOrders() {
-  try {
-    if (fs.existsSync(DATA_FILE)) return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch { console.warn('⚠️  Could not read orders.json – starting fresh.'); }
-  return [];
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
 }
 
-function saveOrders(orders) {
-  try { fs.writeFileSync(DATA_FILE, JSON.stringify(orders, null, 2), 'utf8'); }
-  catch (err) { console.error('❌ Failed to persist orders:', err.message); }
-}
+const db = admin.firestore();
+const { v4: uuidv4 } = require('uuid');
 
+// ── In-memory sessions (these are fine in-memory, they're temporary per-conversation) ──
 const sessions = {};
-let orders = loadOrders();
-
-// ── Sessions ──────────────────────────────────────────────────────────────────
-// cart: [ { id, name, category, type, price, qty } ]
 
 function getSession(phone) {
   if (!sessions[phone]) {
-    sessions[phone] = {
-      step: 'WELCOME',
-      selectedCategory: null,
-      cart: [],
-      orderId: null,
-    };
+    sessions[phone] = { step: 'WELCOME', selectedCategory: null, cart: [], orderId: null };
   }
   return sessions[phone];
 }
-
-function setSession(phone, data) {
-  sessions[phone] = { ...getSession(phone), ...data };
-}
-
+function setSession(phone, data) { sessions[phone] = { ...getSession(phone), ...data }; }
 function resetSession(phone) {
-  sessions[phone] = {
-    step: 'WELCOME',
-    selectedCategory: null,
-    cart: [],
-    orderId: null,
-  };
+  sessions[phone] = { step: 'WELCOME', selectedCategory: null, cart: [], orderId: null };
 }
 
-// ── Cart helpers ──────────────────────────────────────────────────────────────
-
+// ── Cart helpers (in-memory, fine) ──
 function addToCart(phone, item) {
   const session = getSession(phone);
-  const cart    = session.cart || [];
+  const cart = session.cart || [];
   const existing = cart.find(c => c.id === item.id);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    cart.push({ ...item, qty: 1 });
-  }
+  if (existing) { existing.qty += 1; } else { cart.push({ ...item, qty: 1 }); }
   setSession(phone, { cart });
   return cart;
 }
-
 function removeFromCart(phone, itemId) {
   const session = getSession(phone);
-  const cart    = (session.cart || []).filter(c => c.id !== itemId);
+  const cart = (session.cart || []).filter(c => c.id !== itemId);
   setSession(phone, { cart });
   return cart;
 }
+function clearCart(phone) { setSession(phone, { cart: [] }); }
+function getCart(phone) { return getSession(phone).cart || []; }
+function getCartTotal(phone) { return getCart(phone).reduce((sum, c) => sum + c.price * c.qty, 0); }
 
-function clearCart(phone) {
-  setSession(phone, { cart: [] });
-}
-
-function getCart(phone) {
-  return getSession(phone).cart || [];
-}
-
-function getCartTotal(phone) {
-  return getCart(phone).reduce((sum, c) => sum + c.price * c.qty, 0);
-}
-
-// ── Orders ────────────────────────────────────────────────────────────────────
-
-function createOrder({ phone, cart, paymentLinkId, paymentLinkUrl }) {
-  const { v4: uuidv4 } = require('uuid');
+// ── Orders (Firestore) ──
+async function createOrder({ phone, cart, paymentLinkId, paymentLinkUrl }) {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const order = {
     id: uuidv4(),
     phone,
-    items: cart.map(c => ({
-      id: c.id, name: c.name, category: c.category,
-      type: c.type, price: c.price, qty: c.qty,
-    })),
+    items: cart.map(c => ({ id: c.id, name: c.name, category: c.category, type: c.type, price: c.price, qty: c.qty })),
     total,
     paymentLinkId,
     paymentLinkUrl,
@@ -103,35 +62,37 @@ function createOrder({ phone, cart, paymentLinkId, paymentLinkUrl }) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  orders.push(order);
-  saveOrders(orders);
-  console.log(`📝 Order created: ${order.id} | total: ₹${total} | items: ${cart.length}`);
+  await db.collection('orders').doc(order.id).set(order);
+  console.log(`📝 Order created: ${order.id} | total: ₹${total}`);
   return order;
 }
 
-function getOrderByPaymentLinkId(paymentLinkId) {
-  const found = orders.find(o => o.paymentLinkId === paymentLinkId) || null;
-  console.log(`🔍 Lookup paymentLinkId=${paymentLinkId} → ${found ? 'FOUND' : 'NOT FOUND'}`);
-  return found;
+async function getOrderByPaymentLinkId(paymentLinkId) {
+  const snap = await db.collection('orders').where('paymentLinkId', '==', paymentLinkId).limit(1).get();
+  if (snap.empty) { console.warn(`⚠️ No order found for paymentLinkId=${paymentLinkId}`); return null; }
+  return snap.docs[0].data();
 }
 
-function getLatestOrderByPhone(phone) {
-  const phoneOrders = orders.filter(o => o.phone === phone);
-  if (!phoneOrders.length) return null;
-  return phoneOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+async function getLatestOrderByPhone(phone) {
+  const snap = await db.collection('orders').where('phone', '==', phone).orderBy('createdAt', 'desc').limit(1).get();
+  if (snap.empty) return null;
+  return snap.docs[0].data();
 }
 
-function updateOrderPaymentStatus(paymentLinkId, status) {
-  const idx = orders.findIndex(o => o.paymentLinkId === paymentLinkId);
-  if (idx === -1) { console.warn(`⚠️  updateStatus: no order for ${paymentLinkId}`); return null; }
-  orders[idx].paymentStatus = status;
-  orders[idx].updatedAt = new Date().toISOString();
-  saveOrders(orders);
-  console.log(`💾 Order ${orders[idx].id} status → ${status}`);
-  return orders[idx];
+async function updateOrderPaymentStatus(paymentLinkId, status) {
+  const snap = await db.collection('orders').where('paymentLinkId', '==', paymentLinkId).limit(1).get();
+  if (snap.empty) { console.warn(`⚠️ updateStatus: no order for ${paymentLinkId}`); return null; }
+  const doc = snap.docs[0];
+  const updated = { paymentStatus: status, updatedAt: new Date().toISOString() };
+  await doc.ref.update(updated);
+  console.log(`💾 Order ${doc.id} status → ${status}`);
+  return { ...doc.data(), ...updated };
 }
 
-function getAllOrders() { return orders; }
+async function getAllOrders() {
+  const snap = await db.collection('orders').orderBy('createdAt', 'desc').get();
+  return snap.docs.map(d => d.data());
+}
 
 module.exports = {
   getSession, setSession, resetSession,
