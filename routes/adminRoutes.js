@@ -1,14 +1,12 @@
 'use strict';
 
 const express = require('express');
-const router = express.Router();
-const { getAllOrders } = require('../services/orderStore');
+const router  = express.Router();
+const db      = require('../config/firebase');
+const { getAllOrders }         = require('../services/orderStore');
+const { invalidateMenuCache }  = require('../services/menuService');
 
-// ── Lazy Firestore init — avoids "called before app init" error ───────────────
-function getMenuDoc() {
-  const admin = require('firebase-admin');
-  return admin.firestore().collection('config').doc('menu');
-}
+const MENU_DOC = db.collection('config').doc('menu');
 
 function authCheck(req, res, next) {
   const apiKey = req.headers['x-api-key'];
@@ -27,7 +25,7 @@ router.get('/', (req, res) => {
 // GET /admin/menu
 router.get('/menu', authCheck, async (req, res) => {
   try {
-    const doc = await getMenuDoc().get();
+    const doc  = await MENU_DOC.get();
     const menu = doc.exists ? doc.data().items : [];
     res.json(menu);
   } catch (err) {
@@ -42,7 +40,8 @@ router.put('/menu', authCheck, async (req, res) => {
     const menu = req.body;
     if (!Array.isArray(menu)) return res.status(400).json({ error: 'Body must be an array' });
     menu.forEach((item, i) => { item.id = i + 1; });
-    await getMenuDoc().set({ items: menu });
+    await MENU_DOC.set({ items: menu });
+    invalidateMenuCache();   // bot sees changes immediately
     console.log(`✅ Menu saved to Firestore: ${menu.length} items`);
     res.json({ success: true, count: menu.length });
   } catch (err) {
@@ -54,21 +53,20 @@ router.put('/menu', authCheck, async (req, res) => {
 // POST /admin/menu — add single item
 router.post('/menu', authCheck, async (req, res) => {
   try {
-    const MENU_DOC = getMenuDoc();
-    const doc = await MENU_DOC.get();
+    const doc  = await MENU_DOC.get();
     const menu = doc.exists ? doc.data().items : [];
     const { name, type, price, category, description } = req.body;
     if (!name || !type || !price) return res.status(400).json({ error: 'name, type, price required' });
     const newItem = {
-      id: menu.length ? Math.max(...menu.map(i => i.id)) + 1 : 1,
-      name,
-      type,
-      category: category || '',
-      price: Number(price),
+      id         : menu.length ? Math.max(...menu.map(i => i.id)) + 1 : 1,
+      name, type,
+      category   : category    || '',
+      price      : Number(price),
       description: description || '',
     };
     menu.push(newItem);
     await MENU_DOC.set({ items: menu });
+    invalidateMenuCache();
     console.log(`✅ Item added to Firestore: ${newItem.name}`);
     res.json({ success: true, item: newItem });
   } catch (err) {
@@ -80,14 +78,14 @@ router.post('/menu', authCheck, async (req, res) => {
 // PATCH /admin/menu/:id — update single item
 router.patch('/menu/:id', authCheck, async (req, res) => {
   try {
-    const MENU_DOC = getMenuDoc();
-    const doc = await MENU_DOC.get();
+    const doc  = await MENU_DOC.get();
     const menu = doc.exists ? doc.data().items : [];
-    const idx = menu.findIndex(i => i.id === Number(req.params.id));
+    const idx  = menu.findIndex(i => i.id === Number(req.params.id));
     if (idx === -1) return res.status(404).json({ error: 'Item not found' });
     menu[idx] = { ...menu[idx], ...req.body, id: menu[idx].id };
     if (req.body.price) menu[idx].price = Number(req.body.price);
     await MENU_DOC.set({ items: menu });
+    invalidateMenuCache();
     res.json({ success: true, item: menu[idx] });
   } catch (err) {
     console.error('❌ PATCH /admin/menu error:', err.message);
@@ -98,14 +96,14 @@ router.patch('/menu/:id', authCheck, async (req, res) => {
 // DELETE /admin/menu/:id
 router.delete('/menu/:id', authCheck, async (req, res) => {
   try {
-    const MENU_DOC = getMenuDoc();
-    const doc = await MENU_DOC.get();
-    let menu = doc.exists ? doc.data().items : [];
+    const doc    = await MENU_DOC.get();
+    let menu     = doc.exists ? doc.data().items : [];
     const before = menu.length;
-    menu = menu.filter(i => i.id !== Number(req.params.id));
+    menu         = menu.filter(i => i.id !== Number(req.params.id));
     if (menu.length === before) return res.status(404).json({ error: 'Item not found' });
     menu.forEach((item, i) => { item.id = i + 1; });
     await MENU_DOC.set({ items: menu });
+    invalidateMenuCache();
     res.json({ success: true, remaining: menu.length });
   } catch (err) {
     console.error('❌ DELETE /admin/menu error:', err.message);
@@ -118,10 +116,10 @@ router.get('/orders', authCheck, async (req, res) => {
   try {
     const orders = await getAllOrders();
     res.json({
-      total: orders.length,
-      paid: orders.filter(o => o.paymentStatus === 'PAID').length,
+      total  : orders.length,
+      paid   : orders.filter(o => o.paymentStatus === 'PAID').length,
       pending: orders.filter(o => o.paymentStatus === 'PENDING').length,
-      failed: orders.filter(o => o.paymentStatus === 'FAILED').length,
+      failed : orders.filter(o => o.paymentStatus === 'FAILED').length,
       orders,
     });
   } catch (err) {
