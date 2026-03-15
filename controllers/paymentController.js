@@ -39,7 +39,7 @@ async function handleRazorpayWebhook(req, res) {
   res.status(200).json({ received: true });
 
   try {
-    // ── PRIMARY: payment_link.paid (enable this in Razorpay dashboard) ────
+    // ── PRIMARY: payment_link.paid ─────────────────────────────────────────
     if (eventType === 'payment_link.paid') {
       const plId = event.payload?.payment_link?.entity?.id;
       console.log(`💳 payment_link.paid | plId: ${plId}`);
@@ -47,9 +47,7 @@ async function handleRazorpayWebhook(req, res) {
       return;
     }
 
-    // ── FALLBACK: payment.captured — extract payment_link_id from payment entity ──
-    // This fires when Razorpay captures the payment, and always includes
-    // the payment_link_id if the payment came from a payment link.
+    // ── FALLBACK: payment.captured ─────────────────────────────────────────
     if (eventType === 'payment.captured') {
       const payment = event.payload?.payment?.entity;
       const plId = payment?.payment_link_id || payment?.invoice_id;
@@ -58,15 +56,16 @@ async function handleRazorpayWebhook(req, res) {
         await sendPaymentConfirmation(plId, 'payment.captured');
       } else {
         console.warn('⚠️  payment.captured has no payment_link_id — cannot match order');
-        // Log all orders to debug
+        // ✅ CHANGED: added await
+        const allOrders = await getAllOrders();
         console.log('📋 Current orders:', JSON.stringify(
-          getAllOrders().map(o => ({ id: o.id, plId: o.paymentLinkId, status: o.paymentStatus }))
+          allOrders.map(o => ({ id: o.id, plId: o.paymentLinkId, status: o.paymentStatus }))
         ));
       }
       return;
     }
 
-    // ── FALLBACK: order.paid — try to match via notes.orderId ─────────────
+    // ── FALLBACK: order.paid ───────────────────────────────────────────────
     if (eventType === 'order.paid') {
       const payment = event.payload?.payment?.entity;
       const plId = payment?.payment_link_id;
@@ -75,7 +74,7 @@ async function handleRazorpayWebhook(req, res) {
       return;
     }
 
-    // ── payment.authorized: NOT the final state, wait for captured ────────
+    // ── payment.authorized: NOT the final state ────────────────────────────
     if (eventType === 'payment.authorized') {
       console.log(`ℹ️  payment.authorized received — waiting for payment.captured to confirm.`);
       return;
@@ -102,11 +101,14 @@ async function handleRazorpayWebhook(req, res) {
 async function sendPaymentConfirmation(paymentLinkId, source) {
   console.log(`🔍 Looking up order for paymentLinkId: ${paymentLinkId} (source: ${source})`);
 
-  const order = getOrderByPaymentLinkId(paymentLinkId);
+  // ✅ CHANGED: added await
+  const order = await getOrderByPaymentLinkId(paymentLinkId);
   if (!order) {
     console.error(`❌ No order found for paymentLinkId: ${paymentLinkId}`);
+    // ✅ CHANGED: added await
+    const allOrders = await getAllOrders();
     console.log('📋 All stored orders:', JSON.stringify(
-      getAllOrders().map(o => ({ plId: o.paymentLinkId, status: o.paymentStatus, phone: o.phone }))
+      allOrders.map(o => ({ plId: o.paymentLinkId, status: o.paymentStatus, phone: o.phone }))
     ));
     return;
   }
@@ -116,12 +118,12 @@ async function sendPaymentConfirmation(paymentLinkId, source) {
     return;
   }
 
-  updateOrderPaymentStatus(paymentLinkId, 'PAID');
+  // ✅ CHANGED: added await
+  await updateOrderPaymentStatus(paymentLinkId, 'PAID');
   resetSession(order.phone);
 
   console.log(`✅ Sending confirmation to ${order.phone} for order ${order.id}`);
 
-  // Support both new multi-item orders (order.items) and old single-item (order.item)
   const items = order.items || (order.item ? [{ ...order.item, qty: 1 }] : []);
   const total = order.total || items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
   const itemLines = items.map(i => {
@@ -146,11 +148,13 @@ async function sendPaymentConfirmation(paymentLinkId, source) {
 // ── Shared: send payment failed message ──────────────────────────────────────
 
 async function sendPaymentFailed(paymentLinkId, eventType) {
-  const order = getOrderByPaymentLinkId(paymentLinkId);
+  // ✅ CHANGED: added await
+  const order = await getOrderByPaymentLinkId(paymentLinkId);
   if (!order) return;
-  if (order.paymentStatus === 'FAILED') return; // already handled
+  if (order.paymentStatus === 'FAILED') return;
 
-  updateOrderPaymentStatus(paymentLinkId, 'FAILED');
+  // ✅ CHANGED: added await
+  await updateOrderPaymentStatus(paymentLinkId, 'FAILED');
   resetSession(order.phone);
 
   console.log(`❌ Payment failed for order ${order.id}`);
