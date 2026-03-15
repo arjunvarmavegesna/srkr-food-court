@@ -1,13 +1,14 @@
 'use strict';
 
-const { verifyWebhookSignature } = require('../services/razorpayService');
-const { getOrderByPaymentLinkId, updateOrderPaymentStatus, resetSession, getAllOrders } = require('../services/orderStore');
-const { sendMessage } = require('../services/twilioService');
-const config = require('../config');
+const { verifyWebhookSignature }                               = require('../services/razorpayService');
+const { getOrderByPaymentLinkId, updateOrderPaymentStatus,
+        resetSession, getAllOrders }                            = require('../services/orderStore');
+const { sendMessage }                                          = require('../services/twilioService');
+const config                                                   = require('../config');
 
 async function handleRazorpayWebhook(req, res) {
   const signature = req.headers['x-razorpay-signature'];
-  const rawBody = req.rawBody;
+  const rawBody   = req.rawBody;
 
   if (!rawBody) {
     console.warn('⚠️  Webhook: no body.');
@@ -25,7 +26,7 @@ async function handleRazorpayWebhook(req, res) {
   const eventType = event.event;
   console.log(`\n🔔 ─── Razorpay event: ${eventType} ───`);
 
-  // Signature check (optional for local dev)
+  // Signature verification (skipped in local dev if secret not set)
   if (signature && process.env.RAZORPAY_WEBHOOK_SECRET) {
     try {
       const valid = verifyWebhookSignature(rawBody, signature);
@@ -35,11 +36,12 @@ async function handleRazorpayWebhook(req, res) {
     }
   }
 
-  // Acknowledge immediately
+  // Acknowledge immediately so Razorpay doesn't retry
   res.status(200).json({ received: true });
 
   try {
-    // ── PRIMARY: payment_link.paid ─────────────────────────────────────────
+
+    // PRIMARY: payment_link.paid
     if (eventType === 'payment_link.paid') {
       const plId = event.payload?.payment_link?.entity?.id;
       console.log(`💳 payment_link.paid | plId: ${plId}`);
@@ -47,16 +49,15 @@ async function handleRazorpayWebhook(req, res) {
       return;
     }
 
-    // ── FALLBACK: payment.captured ─────────────────────────────────────────
+    // FALLBACK: payment.captured
     if (eventType === 'payment.captured') {
       const payment = event.payload?.payment?.entity;
-      const plId = payment?.payment_link_id || payment?.invoice_id;
+      const plId    = payment?.payment_link_id || payment?.invoice_id;
       console.log(`💰 payment.captured | payment_id: ${payment?.id} | payment_link_id: ${plId}`);
       if (plId) {
         await sendPaymentConfirmation(plId, 'payment.captured');
       } else {
         console.warn('⚠️  payment.captured has no payment_link_id — cannot match order');
-        // ✅ CHANGED: added await
         const allOrders = await getAllOrders();
         console.log('📋 Current orders:', JSON.stringify(
           allOrders.map(o => ({ id: o.id, plId: o.paymentLinkId, status: o.paymentStatus }))
@@ -65,26 +66,26 @@ async function handleRazorpayWebhook(req, res) {
       return;
     }
 
-    // ── FALLBACK: order.paid ───────────────────────────────────────────────
+    // FALLBACK: order.paid
     if (eventType === 'order.paid') {
       const payment = event.payload?.payment?.entity;
-      const plId = payment?.payment_link_id;
+      const plId    = payment?.payment_link_id;
       console.log(`🧾 order.paid | payment_link_id: ${plId}`);
       if (plId) await sendPaymentConfirmation(plId, 'order.paid');
       return;
     }
 
-    // ── payment.authorized: NOT the final state ────────────────────────────
+    // payment.authorized is NOT final — wait for payment.captured
     if (eventType === 'payment.authorized') {
       console.log(`ℹ️  payment.authorized received — waiting for payment.captured to confirm.`);
       return;
     }
 
-    // ── Failures ──────────────────────────────────────────────────────────
+    // Failures
     if (eventType === 'payment_link.cancelled' || eventType === 'payment.failed') {
-      const plEntity = event.payload?.payment_link?.entity;
+      const plEntity  = event.payload?.payment_link?.entity;
       const payEntity = event.payload?.payment?.entity;
-      const plId = plEntity?.id || payEntity?.payment_link_id;
+      const plId      = plEntity?.id || payEntity?.payment_link_id;
       if (plId) await sendPaymentFailed(plId, eventType);
       return;
     }
@@ -96,16 +97,14 @@ async function handleRazorpayWebhook(req, res) {
   }
 }
 
-// ── Shared: send WhatsApp confirmation ───────────────────────────────────────
+// ── Send WhatsApp payment confirmation ───────────────────────────────────────
 
 async function sendPaymentConfirmation(paymentLinkId, source) {
   console.log(`🔍 Looking up order for paymentLinkId: ${paymentLinkId} (source: ${source})`);
 
-  // ✅ CHANGED: added await
   const order = await getOrderByPaymentLinkId(paymentLinkId);
   if (!order) {
     console.error(`❌ No order found for paymentLinkId: ${paymentLinkId}`);
-    // ✅ CHANGED: added await
     const allOrders = await getAllOrders();
     console.log('📋 All stored orders:', JSON.stringify(
       allOrders.map(o => ({ plId: o.paymentLinkId, status: o.paymentStatus, phone: o.phone }))
@@ -114,18 +113,17 @@ async function sendPaymentConfirmation(paymentLinkId, source) {
   }
 
   if (order.paymentStatus === 'PAID') {
-    console.log(`ℹ️  Order ${order.id} already marked PAID — skipping duplicate confirmation.`);
+    console.log(`ℹ️  Order ${order.id} already marked PAID — skipping duplicate.`);
     return;
   }
 
-  // ✅ CHANGED: added await
   await updateOrderPaymentStatus(paymentLinkId, 'PAID');
   resetSession(order.phone);
 
   console.log(`✅ Sending confirmation to ${order.phone} for order ${order.id}`);
 
-  const items = order.items || (order.item ? [{ ...order.item, qty: 1 }] : []);
-  const total = order.total || items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
+  const items     = order.items || (order.item ? [{ ...order.item, qty: 1 }] : []);
+  const total     = order.total || items.reduce((s, i) => s + i.price * (i.qty || 1), 0);
   const itemLines = items.map(i => {
     const e = i.type === 'Veg' ? '🥦' : '🍗';
     return `${e} *${i.name}* x${i.qty || 1} – ₹${i.price * (i.qty || 1)}`;
@@ -145,15 +143,13 @@ async function sendPaymentConfirmation(paymentLinkId, source) {
   console.log(`✅ Confirmation WhatsApp sent to ${order.phone}`);
 }
 
-// ── Shared: send payment failed message ──────────────────────────────────────
+// ── Send payment failed message ───────────────────────────────────────────────
 
 async function sendPaymentFailed(paymentLinkId, eventType) {
-  // ✅ CHANGED: added await
   const order = await getOrderByPaymentLinkId(paymentLinkId);
   if (!order) return;
   if (order.paymentStatus === 'FAILED') return;
 
-  // ✅ CHANGED: added await
   await updateOrderPaymentStatus(paymentLinkId, 'FAILED');
   resetSession(order.phone);
 
