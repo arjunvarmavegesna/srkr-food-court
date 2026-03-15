@@ -1,8 +1,9 @@
 'use strict';
 
-const menu = require('../menu.json');
+const admin = require('firebase-admin');
 
-function getMenu() { return menu; }
+const db = admin.firestore();
+const MENU_DOC = db.collection('config').doc('menu');
 
 // Category emojis map
 const CATEGORY_EMOJI = {
@@ -22,8 +23,39 @@ function getCategoryEmoji(cat) {
   return CATEGORY_EMOJI[cat] || '🍽️';
 }
 
-// Get unique categories in order they appear
-function getCategories() {
+// ── Fetch menu from Firestore (with 30-second in-memory cache) ────────────────
+// This avoids hitting Firestore on every single WhatsApp message.
+
+let _menuCache = null;
+let _menuCacheTime = 0;
+const CACHE_TTL = 30 * 1000; // 30 seconds
+
+async function getMenu() {
+  const now = Date.now();
+  if (_menuCache && (now - _menuCacheTime) < CACHE_TTL) {
+    return _menuCache;
+  }
+  try {
+    const doc = await MENU_DOC.get();
+    _menuCache = doc.exists ? doc.data().items : [];
+    _menuCacheTime = now;
+    return _menuCache;
+  } catch (err) {
+    console.error('❌ menuService: failed to load menu from Firestore:', err.message);
+    return _menuCache || []; // return stale cache if available
+  }
+}
+
+// Call this after admin panel updates menu so bot sees changes immediately
+function invalidateMenuCache() {
+  _menuCache = null;
+  _menuCacheTime = 0;
+}
+
+// ── All functions are now async ───────────────────────────────────────────────
+
+async function getCategories() {
+  const menu = await getMenu();
   const seen = new Set();
   return menu.filter(i => {
     if (seen.has(i.category)) return false;
@@ -32,32 +64,31 @@ function getCategories() {
   }).map(i => i.category);
 }
 
-// Get items belonging to a category
-function getItemsByCategory(category) {
+async function getItemsByCategory(category) {
+  const menu = await getMenu();
   return menu.filter(i => i.category === category);
 }
 
-// Find item by its GLOBAL menu number
-function getItemByNumber(number) {
+async function getItemByNumber(number) {
+  const menu = await getMenu();
   const idx = parseInt(number, 10);
   if (isNaN(idx) || idx < 1 || idx > menu.length) return null;
   return menu[idx - 1];
 }
 
-// Find item by position within a category (1-based)
-function getItemByCategoryAndNumber(category, number) {
-  const items = getItemsByCategory(category);
+async function getItemByCategoryAndNumber(category, number) {
+  const items = await getItemsByCategory(category);
   const idx = parseInt(number, 10);
   if (isNaN(idx) || idx < 1 || idx > items.length) return null;
   return items[idx - 1];
 }
 
-// Format category list for WhatsApp
-function formatCategoryMessage() {
-  const cats = getCategories();
+async function formatCategoryMessage() {
+  const cats = await getCategories();
+  const menu = await getMenu();
   const lines = ['🍽️ *Welcome! Choose a Category:*\n'];
   cats.forEach((cat, i) => {
-    const items = getItemsByCategory(cat);
+    const items = menu.filter(m => m.category === cat);
     const emoji = getCategoryEmoji(cat);
     lines.push(`${i + 1}. ${emoji} *${cat}*  _(${items.length} items)_`);
   });
@@ -65,9 +96,8 @@ function formatCategoryMessage() {
   return lines.join('\n');
 }
 
-// Format items within a category for WhatsApp
-function formatCategoryItemsMessage(category) {
-  const items = getItemsByCategory(category);
+async function formatCategoryItemsMessage(category) {
+  const items = await getItemsByCategory(category);
   if (!items.length) return null;
   const catEmoji = getCategoryEmoji(category);
   const lines = [`${catEmoji} *${category}*\n`];
@@ -80,18 +110,18 @@ function formatCategoryItemsMessage(category) {
   return lines.join('\n');
 }
 
-// Full flat menu
-function formatMenuMessage() {
-  const cats = getCategories();
+async function formatMenuMessage() {
+  const cats = await getCategories();
   const lines = ['📋 *Our Full Menu:*\n'];
-  cats.forEach(cat => {
+  for (const cat of cats) {
     const emoji = getCategoryEmoji(cat);
     lines.push(`\n${emoji} *${cat}*`);
-    getItemsByCategory(cat).forEach(item => {
+    const items = await getItemsByCategory(cat);
+    items.forEach(item => {
       const typeEmoji = item.type === 'Veg' ? '🥦' : '🍗';
       lines.push(`  ${typeEmoji} ${item.name} – ₹${item.price}`);
     });
-  });
+  }
   return lines.join('\n');
 }
 
@@ -99,4 +129,5 @@ module.exports = {
   getMenu, getCategories, getItemsByCategory,
   getItemByNumber, getItemByCategoryAndNumber,
   formatCategoryMessage, formatCategoryItemsMessage, formatMenuMessage,
+  invalidateMenuCache,
 };
