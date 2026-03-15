@@ -1,0 +1,26 @@
+{
+  "name": "deekshita-food-court-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp chatbot for Deekshita Food Court with Razorpay payments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "razorpay": "^2.9.2",
+    "twilio": "^4.23.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

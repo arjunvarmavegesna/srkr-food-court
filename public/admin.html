@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Deekshita Food Court</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0f0e0d;--surface:#1a1917;--card:#222120;--border:#2e2c2a;
+    --accent:#f5a623;--accent2:#e8522a;--text:#f0ede8;--muted:#888580;
+    --veg:#4caf80;--nonveg:#e05050;--danger:#e05050;--success:#4caf80;
+    --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+    --radius:12px;--radius-sm:8px;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px;line-height:1.6;}
+
+  /* ── Header ── */
+  header{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:100;
+  }
+  .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.3px;}
+  .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .logo span{color:var(--accent);}
+  .header-right{display:flex;align-items:center;gap:12px;}
+  .badge{background:#2a2218;color:var(--accent);border:1px solid #3d3010;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;font-family:var(--mono);}
+
+  /* ── Layout ── */
+  .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
+  
+  /* ── Sidebar ── */
+  aside{background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 0;}
+  .nav-section{padding:0 1rem;margin-bottom:1.5rem;}
+  .nav-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:0 .75rem;margin-bottom:.5rem;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:var(--radius-sm);cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .15s;border:none;background:none;width:100%;text-align:left;}
+  .nav-item:hover{background:var(--card);color:var(--text);}
+  .nav-item.active{background:#2a2010;color:var(--accent);}
+  .nav-item svg{flex-shrink:0;}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-left:auto;}
+
+  /* ── Main ── */
+  main{padding:2rem;overflow-y:auto;}
+  .page{display:none;}
+  .page.active{display:block;}
+
+  /* ── Page header ── */
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;}
+  .page-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+  .page-sub{color:var(--muted);font-size:13px;margin-top:3px;}
+
+  /* ── Buttons ── */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);}
+  .btn-primary{background:var(--accent);color:#0f0e0d;}
+  .btn-primary:hover{background:#f7b84a;}
+  .btn-danger{background:transparent;color:var(--danger);border:1px solid #3a1f1f;}
+  .btn-danger:hover{background:#2a1515;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--card);color:var(--text);}
+  .btn-success{background:#1a3328;color:var(--success);border:1px solid #1e4535;}
+  .btn-success:hover{background:#1e3d2f;}
+  .btn-sm{padding:.35rem .75rem;font-size:12px;}
+
+  /* ── Stats row ── */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;}
+  .stat-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+  .stat-value{font-size:28px;font-weight:700;letter-spacing:-1px;font-family:var(--mono);}
+  .stat-value.accent{color:var(--accent);}
+  .stat-value.green{color:var(--success);}
+  .stat-value.red{color:var(--danger);}
+  .stat-change{font-size:11px;color:var(--muted);margin-top:4px;}
+
+  /* ── Table / Menu cards ── */
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+  .section-title{font-size:15px;font-weight:600;}
+  
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
+  .menu-card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+    padding:1.25rem;position:relative;transition:border-color .2s;
+  }
+  .menu-card:hover{border-color:#3a3835;}
+  .menu-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;}
+  .item-num{width:28px;height:28px;border-radius:6px;background:#2a2010;color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
+  .type-badge{font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:20px;}
+  .type-badge.veg{background:#0e2a1c;color:var(--veg);border:1px solid #1a4a2e;}
+  .type-badge.nonveg{background:#2a0e0e;color:var(--nonveg);border:1px solid #4a1a1a;}
+  .item-name{font-size:15px;font-weight:600;margin:.5rem 0 .25rem;letter-spacing:-.2px;}
+  .item-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:1rem;}
+  .item-price-row{display:flex;align-items:center;justify-content:space-between;}
+  .item-price{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent);}
+  .item-price span{font-size:13px;font-weight:400;color:var(--muted);}
+  .card-actions{display:flex;gap:6px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+  .card-actions .btn{flex:1;justify-content:center;}
+
+  /* ── Modal ── */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .modal-overlay.open{opacity:1;pointer-events:all;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .2s;}
+  .modal-overlay.open .modal{transform:translateY(0);}
+  .modal-header{padding:1.5rem 1.5rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+  .modal-title{font-size:17px;font-weight:700;}
+  .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px;}
+  .modal-close:hover{color:var(--text);}
+  .modal-body{padding:1.5rem;}
+  .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
+
+  /* ── Form ── */
+  .form-group{margin-bottom:1.25rem;}
+  .form-label{display:block;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+  .form-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem 1rem;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .15s;}
+  .form-input:focus{border-color:var(--accent);}
+  .form-input::placeholder{color:#555;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .75rem center;}
+  .price-input-wrap{position:relative;}
+  .price-input-wrap::before{content:'₹';position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--muted);font-family:var(--mono);}
+  .price-input-wrap .form-input{padding-left:2rem;}
+
+  /* ── Orders table ── */
+  .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  thead{background:#1e1d1b;}
+  th{padding:.75rem 1rem;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:left;}
+  td{padding:.9rem 1rem;font-size:13px;border-top:1px solid var(--border);}
+  tr:hover td{background:#1e1d1b;}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+  .status-pill.paid{background:#0e2a1c;color:var(--success);}
+  .status-pill.pending{background:#2a200a;color:var(--accent);}
+  .status-pill.failed{background:#2a0e0e;color:var(--danger);}
+  .status-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+  .phone-mono{font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+  /* ── Toast ── */
+  #toast{position:fixed;bottom:2rem;right:2rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-size:13px;font-weight:500;transform:translateY(100px);opacity:0;transition:all .25s;z-index:999;max-width:300px;}
+  #toast.show{transform:translateY(0);opacity:1;}
+  #toast.success{border-color:#1e4535;color:var(--success);}
+  #toast.error{border-color:#4a1a1a;color:var(--danger);}
+
+  /* ── Empty state ── */
+  .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+  .empty-icon{font-size:40px;margin-bottom:.75rem;}
+  .empty-text{font-size:15px;font-weight:500;}
+  .empty-sub{font-size:13px;margin-top:.25rem;}
+
+
+  /* ── Search & Filter bar ── */
+  .search-bar{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+  .search-wrap{position:relative;flex:1;}
+  .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+  .search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:.6rem 1rem .6rem 2.5rem;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s;}
+  .search-input:focus{border-color:var(--accent);}
+  .search-input::placeholder{color:#555;}
+  .filter-btn{padding:.55rem .9rem;border-radius:var(--radius-sm);font-size:12px;font-weight:600;
+    cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);
+    font-family:var(--font);transition:all .15s;white-space:nowrap;}
+  .filter-btn:hover{color:var(--text);border-color:#3a3835;}
+  .filter-btn.active{background:#2a2010;color:var(--accent);border-color:#3d3010;}
+  .results-count{font-size:12px;color:var(--muted);margin-bottom:.75rem;}
+  .results-count span{color:var(--text);font-weight:600;}
+
+  /* ── Delete confirm ── */
+  .delete-confirm{background:#1a0e0e;border:1px solid #3a1a1a;border-radius:var(--radius);padding:1.5rem;text-align:center;}
+  .delete-confirm p{color:var(--muted);font-size:13px;margin:.5rem 0 1.25rem;}
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar{width:5px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    .layout{grid-template-columns:1fr;}
+    aside{display:none;}
+    .stats{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🍽</div>
+    <div>Deekshita <span>Admin</span></div>
+  </div>
+  <div class="header-right">
+    <div class="badge" id="menu-count-badge">— items</div>
+    <div class="badge" id="server-status" style="color:var(--muted);">⬤ connecting...</div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <div class="nav-section">
+      <div class="nav-label">Menu</div>
+      <button class="nav-item" id="nav-menu" onclick="showPage('menu')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Menu Items
+      </button>
+      <button class="nav-item" id="nav-add" onclick="showPage('add')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add New Item
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Orders</div>
+      <button class="nav-item" id="nav-orders" onclick="showPage('orders')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        All Orders
+        <div class="nav-dot"></div>
+      </button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">System</div>
+      <button class="nav-item" id="nav-settings" onclick="showPage('settings')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        Settings
+      </button>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ══ MENU PAGE ══ -->
+    <div class="page" id="page-menu">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Menu Items</div>
+          <div class="page-sub">Manage your food items, prices, and availability</div>
+        </div>
+        <button class="btn btn-primary" onclick="showPage('add')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Item
+        </button>
+      </div>
+
+      <div class="stats" id="menu-stats">
+        <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-value accent" id="stat-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">Veg Items</div><div class="stat-value green" id="stat-veg">0</div></div>
+        <div class="stat-card"><div class="stat-label">Non-Veg Items</div><div class="stat-value red" id="stat-nonveg">0</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Price</div><div class="stat-value" id="stat-avg" style="font-size:20px;">₹0</div></div>
+      </div>
+
+      <div class="menu-grid" id="menu-grid">
+        <div class="empty"><div class="empty-icon">🍽</div><div class="empty-text">Loading menu...</div></div>
+      </div>
+    </div>
+
+    <!-- ══ ADD ITEM PAGE ══ -->
+    <div class="page" id="page-add">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="add-page-title">Add New Item</div>
+          <div class="page-sub">Fill in the details below to add to the menu</div>
+        </div>
+      </div>
+
+      <div style="max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;">
+        <input type="hidden" id="edit-id"/>
+        <div class="form-group">
+          <label class="form-label">Item Name</label>
+          <input type="text" class="form-input" id="f-name" placeholder="e.g. Chicken Biryani"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input type="text" class="form-input" id="f-category" placeholder="e.g. Burgers" list="category-suggestions"/>
+            <datalist id="category-suggestions"></datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="form-input form-select" id="f-type">
+              <option value="Veg">🥦 Veg</option>
+              <option value="Non-Veg">🍗 Non-Veg</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price (₹)</label>
+            <div class="price-input-wrap">
+              <input type="number" class="form-input" id="f-price" placeholder="120" min="1"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-input" id="f-desc" placeholder="Short description"/>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:.5rem;">
+          <button class="btn btn-primary" id="save-btn" onclick="saveItem()" style="flex:1;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Save Item
+          </button>
+          <button class="btn btn-ghost" onclick="resetForm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ORDERS PAGE ══ -->
+    <div class="page" id="page-orders">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Orders</div>
+          <div class="page-sub">All orders placed through the WhatsApp bot</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadOrders()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <div class="stats" id="order-stats">
+        <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="o-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value green" id="o-paid">0</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value accent" id="o-pending">0</div></div>
+        <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="o-revenue" style="font-size:18px;">₹0</div></div>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="order-search" placeholder="Search by phone, item name..." oninput="filterOrders()"/>
+        </div>
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all',this)">All</button>
+        <button class="filter-btn" id="filter-paid" onclick="setFilter('paid',this)">Paid</button>
+        <button class="filter-btn" id="filter-pending" onclick="setFilter('pending',this)">Pending</button>
+        <button class="filter-btn" id="filter-failed" onclick="setFilter('failed',this)">Failed</button>
+      </div>
+      <div class="results-count" id="results-count" style="display:none">Showing <span id="results-num">0</span> orders</div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Phone</th>
+              <th>Item</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <tr><td colspan="6"><div class="empty"><div class="empty-text">Loading orders...</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS PAGE ══ -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Settings</div>
+          <div class="page-sub">Configure your admin panel connection</div>
+        </div>
+      </div>
+      <div style="max-width:500px;">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:1rem;">API Connection</div>
+          <div class="form-group">
+            <label class="form-label">Server URL</label>
+            <input type="text" class="form-input" id="cfg-url" placeholder="http://localhost:3000"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin API Key</label>
+            <input type="password" class="form-input" id="cfg-key" placeholder="Your ADMIN_API_KEY from .env"/>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save & Test Connection</button>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:.75rem;">Connection Status</div>
+          <div id="conn-status" style="font-size:13px;color:var(--muted);">Not tested yet</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Item</div>
+      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Item Name</label>
+        <input type="text" class="form-input" id="m-name"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input type="text" class="form-input" id="m-category" list="category-suggestions"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-input form-select" id="m-type">
+            <option value="Veg">🥦 Veg</option>
+            <option value="Non-Veg">🍗 Non-Veg</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (₹)</label>
+          <div class="price-input-wrap">
+            <input type="number" class="form-input" id="m-price" min="1"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-input" id="m-desc"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DELETE MODAL ══ -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-body" style="padding:2rem;">
+      <div class="delete-confirm">
+        <div style="font-size:32px;margin-bottom:.75rem;">🗑</div>
+        <div style="font-size:16px;font-weight:700;" id="delete-item-name">Delete Item?</div>
+        <p>This will permanently remove the item from the menu. Orders already placed won't be affected.</p>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="closeModal('delete-modal')" style="flex:1;justify-content:center;">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDelete()" style="flex:1;justify-content:center;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══ State ══
+let menuData = [];
+let editingIndex = null;
+let deletingIndex = null;
+let settings = { url: 'http://localhost:3000', key: '' };
+
+// ══ State ══
+let currentPage = null; // track active page explicitly — never rely on DOM class
+
+// ══ Navigation ══
+function showPage(name){
+  // Guard: do nothing if already on this page
+  if(currentPage === name) return;
+  currentPage = name;
+
+  // Persist tab so page refresh/Live Server reload restores position
+  localStorage.setItem('dfc_active_tab', name);
+
+  // Hide all pages, deactivate all nav items
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  // Show target page
+  const pageEl = document.getElementById('page-' + name);
+  if(pageEl) pageEl.classList.add('active');
+
+  // Highlight correct nav button
+  const navEl = document.getElementById('nav-' + name);
+  if(navEl) navEl.classList.add('active');
+
+  // Lazy-load data only when tab is first opened
+  if(name === 'orders') loadOrders();
+  if(name === 'menu' && menuData.length === 0) loadMenu();
+}
+
+// ══ Init ══
+(function init(){
+  const saved = localStorage.getItem('dfc_settings');
+  if(saved){ try{ settings = {...settings,...JSON.parse(saved)}; }catch(e){} }
+  document.getElementById('cfg-url').value = settings.url;
+  document.getElementById('cfg-key').value = settings.key;
+
+  // Restore last active tab — so refreshes/Live Server reloads don't reset position
+  const lastTab = localStorage.getItem('dfc_active_tab') || 'menu';
+  showPage(lastTab);
+  if(lastTab !== 'menu') loadMenu(); // always preload menu data silently
+  checkServer();
+})();
+
+// ══ Settings ══
+function saveSettings(){
+  settings.url = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
+  settings.key = document.getElementById('cfg-key').value.trim();
+  localStorage.setItem('dfc_settings', JSON.stringify(settings));
+  checkServer();
+  toast('Settings saved','success');
+}
+
+async function checkServer(){
+  const el = document.getElementById('server-status');
+  const conn = document.getElementById('conn-status');
+  el.textContent = '⬤ connecting...';
+  el.style.color = 'var(--muted)';
+  try{
+    const r = await fetch(settings.url+'/health',{signal:AbortSignal.timeout(4000)});
+    if(r.ok){
+      el.textContent = '⬤ online';
+      el.style.color = 'var(--success)';
+      if(conn) conn.innerHTML = '<span style="color:var(--success);font-weight:600;">Connected</span> — server is reachable at '+settings.url;
+    }else throw new Error();
+  }catch(e){
+    el.textContent = '⬤ offline';
+    el.style.color = 'var(--danger)';
+    if(conn) conn.innerHTML = '<span style="color:var(--danger);font-weight:600;">Cannot connect</span> — is the server running? Check the URL in Settings.';
+  }
+}
+
+// ══ Load Menu from server OR local JSON ══
+async function loadMenu(){
+  try{
+    const headers = settings.key ? {'x-api-key':settings.key} : {};
+    const r = await fetch(settings.url+'/admin/menu',{headers,signal:AbortSignal.timeout(5000)});
+    if(!r.ok) throw new Error('status '+r.status);
+    menuData = await r.json();
+  }catch(e){
+    // Fallback: if server has no /admin/menu, use bundled data
+    if(menuData.length===0) menuData = getDefaultMenu();
+  }
+  renderMenu();
+}
+
+function getDefaultMenu(){
+  return [
+    {id:1,name:"Veg Fried Rice",type:"Veg",price:120,description:"Aromatic basmati rice with fresh vegetables"},
+    {id:2,name:"Chicken Biryani",type:"Non-Veg",price:180,description:"Slow-cooked spiced chicken with basmati rice"},
+    {id:3,name:"Paneer Butter Masala",type:"Veg",price:160,description:"Cottage cheese in rich tomato-butter gravy"},
+    {id:4,name:"Chicken Noodles",type:"Non-Veg",price:150,description:"Stir-fried noodles with tender chicken pieces"},
+    {id:5,name:"Veg Manchurian",type:"Veg",price:140,description:"Crispy vegetable dumplings in spicy sauce"},
+    {id:6,name:"Egg Fried Rice",type:"Non-Veg",price:130,description:"Fluffy rice stir-fried with fresh eggs"},
+    {id:7,name:"Dal Tadka",type:"Veg",price:110,description:"Yellow lentils tempered with cumin and spices"},
+    {id:8,name:"Chicken 65",type:"Non-Veg",price:200,description:"Spicy deep-fried chicken starter"},
+  ];
+}
+
+const CATEGORY_EMOJI = {
+  'Fried Rice':'🍚','Noodles':'🍜','Sandwich':'🥪','Maggies':'🍝',
+  'Frankie':'🌯','Juices':'🧃','Snacks':'🍟','Milkshakes':'🥤',
+  'Burgers':'🍔','Mocktails':'🍹'
+};
+function getCatEmoji(cat){ return CATEGORY_EMOJI[cat] || '🍽️'; }
+
+// ══ Render Menu Cards grouped by category ══
+function renderMenu(){
+  const veg   = menuData.filter(i=>i.type==='Veg').length;
+  const nonveg= menuData.filter(i=>i.type==='Non-Veg').length;
+  const avg   = menuData.length ? Math.round(menuData.reduce((s,i)=>s+i.price,0)/menuData.length) : 0;
+  document.getElementById('stat-total').textContent  = menuData.length;
+  document.getElementById('stat-veg').textContent    = veg;
+  document.getElementById('stat-nonveg').textContent = nonveg;
+  document.getElementById('stat-avg').textContent    = '₹'+avg;
+  document.getElementById('menu-count-badge').textContent = menuData.length+' items';
+
+  // Populate category datalist for add/edit forms
+  const cats = [...new Set(menuData.map(i=>i.category).filter(Boolean))];
+  const dl = document.getElementById('category-suggestions');
+  if(dl) dl.innerHTML = cats.map(c=>`<option value="${esc(c)}">`).join('');
+
+  const grid = document.getElementById('menu-grid');
+  if(!menuData.length){
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🍽</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your first menu item</div></div>`;
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  menuData.forEach((item, i) => {
+    const cat = item.category || 'Uncategorised';
+    if(!groups[cat]) groups[cat] = [];
+    groups[cat].push({item, idx: i});
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([cat, entries]) => {
+    const emoji = getCatEmoji(cat);
+    html += `<div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:1rem 0 .25rem;">
+      <span style="font-size:20px">${emoji}</span>
+      <span style="font-size:15px;font-weight:700;letter-spacing:-.2px">${esc(cat)}</span>
+      <span style="font-size:11px;color:var(--muted);background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2px 8px">${entries.length} items</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>`;
+    entries.forEach(({item, idx}) => {
+      const typeEmoji = item.type==='Veg' ? '🥦' : '🍗';
+      const typeCls   = item.type==='Veg' ? 'veg' : 'nonveg';
+      html += `
+      <div class="menu-card" id="card-${idx}">
+        <div class="menu-card-header">
+          <div class="item-num">${idx+1}</div>
+          <span class="type-badge ${typeCls}">${typeEmoji} ${item.type==='Veg'?'Veg':'Non-Veg'}</span>
+        </div>
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-desc">${esc(item.description||'')}</div>
+        <div class="item-price-row">
+          <div class="item-price">₹${item.price}</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEdit(${idx})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="openDelete(${idx})">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            Delete
+          </button>
+        </div>
+      </div>`;
+    });
+  });
+  grid.innerHTML = html;
+}
+
+// ══ Add Item ══
+function saveItem(){
+  const name     = document.getElementById('f-name').value.trim();
+  const category = document.getElementById('f-category').value.trim();
+  const type     = document.getElementById('f-type').value;
+  const price    = parseInt(document.getElementById('f-price').value);
+  const desc     = document.getElementById('f-desc').value.trim();
+  if(!name)    { toast('Item name is required','error'); return; }
+  if(!category){ toast('Category is required','error'); return; }
+  if(!price||price<1){ toast('Enter a valid price','error'); return; }
+
+  const editId = document.getElementById('edit-id').value;
+  if(editId!==''){
+    menuData[parseInt(editId)] = {...menuData[parseInt(editId)],name,category,type,price,description:desc};
+  }else{
+    const newId = menuData.length ? Math.max(...menuData.map(i=>i.id||0))+1 : 1;
+    menuData.push({id:newId,name,category,type,price,description:desc});
+    toast('Item added to menu ✅','success');
+  }
+  saveMenuToServer();
+  resetForm();
+  renderMenu();
+}
+
+function resetForm(){
+  document.getElementById('f-name').value='';
+  document.getElementById('f-category').value='';
+  document.getElementById('f-type').value='Veg';
+  document.getElementById('f-price').value='';
+  document.getElementById('f-desc').value='';
+  document.getElementById('edit-id').value='';
+  document.getElementById('add-page-title').textContent='Add New Item';
+}
+
+// ══ Edit Modal ══
+function openEdit(i){
+  editingIndex = i;
+  const item = menuData[i];
+  document.getElementById('m-name').value     = item.name;
+  document.getElementById('m-category').value = item.category||'';
+  document.getElementById('m-type').value     = item.type;
+  document.getElementById('m-price').value    = item.price;
+  document.getElementById('m-desc').value     = item.description||'';
+  openModal('edit-modal');
+}
+
+function saveEdit(){
+  if(editingIndex===null) return;
+  const name     = document.getElementById('m-name').value.trim();
+  const category = document.getElementById('m-category').value.trim();
+  const type     = document.getElementById('m-type').value;
+  const price    = parseInt(document.getElementById('m-price').value);
+  const desc     = document.getElementById('m-desc').value.trim();
+  if(!name)    { toast('Name required','error'); return; }
+  if(!category){ toast('Category required','error'); return; }
+  if(!price||price<1){ toast('Enter valid price','error'); return; }
+  menuData[editingIndex] = {...menuData[editingIndex],name,category,type,price,description:desc};
+  saveMenuToServer();
+  closeModal('edit-modal');
+  renderMenu();
+  toast('Changes saved ✅','success');
+}
+
+// ══ Delete ══
+function openDelete(i){
+  deletingIndex = i;
+  document.getElementById('delete-item-name').textContent = 'Delete "'+menuData[i].name+'"?';
+  openModal('delete-modal');
+}
+
+function confirmDelete(){
+  if(deletingIndex===null) return;
+  const name = menuData[deletingIndex].name;
+  menuData.splice(deletingIndex,1);
+  // Re-assign ids
+  menuData.forEach((item,i)=>{ item.id = i+1; });
+  saveMenuToServer();
+  closeModal('delete-modal');
+  renderMenu();
+  toast(name+' removed','success');
+}
+
+// ══ Save Menu to Server ══
+async function saveMenuToServer(){
+  try{
+    const headers = {'Content-Type':'application/json'};
+    if(settings.key) headers['x-api-key'] = settings.key;
+    await fetch(settings.url+'/admin/menu',{
+      method:'PUT',headers,
+      body:JSON.stringify(menuData),
+      signal:AbortSignal.timeout(5000)
+    });
+  }catch(e){
+    // Server save failed — data still in memory for this session
+    console.warn('Could not sync to server:',e.message);
+  }
+}
+
+// ══ Orders ══
+let allOrders = [];
+let activeFilter = 'all';
+
+async function loadOrders(){
+  const tbody = document.getElementById('orders-tbody');
+  tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Loading...</div></div></td></tr>';
+  try{
+    const headers = settings.key ? {'x-api-key':settings.key} : {};
+    const r = await fetch(settings.url+'/admin/orders',{headers,signal:AbortSignal.timeout(5000)});
+    if(!r.ok) throw new Error('status '+r.status);
+    const data = await r.json();
+    allOrders = [...(data.orders||[])].reverse(); // newest first
+    updateOrderStats(data);
+    filterOrders();
+  }catch(e){
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔌</div><div class="empty-text">Cannot load orders</div><div class="empty-sub">Make sure server is running and API key is correct</div></div></td></tr>`;
+  }
+}
+
+function updateOrderStats(data){
+  document.getElementById('o-total').textContent = data.total||0;
+  document.getElementById('o-paid').textContent = data.paid||0;
+  document.getElementById('o-pending').textContent = data.pending||0;
+  const revenue = (data.orders||[]).filter(o=>o.paymentStatus==='PAID').reduce((s,o)=>{
+    if(o.total) return s+o.total;
+    if(o.items) return s+o.items.reduce((t,i)=>t+(i.price*(i.qty||1)),0);
+    return s+(o.item?.price||0);
+  },0);
+  document.getElementById('o-revenue').textContent = '₹'+revenue.toLocaleString('en-IN');
+}
+
+function setFilter(filter, btn){
+  activeFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterOrders();
+}
+
+function filterOrders(){
+  const q = (document.getElementById('order-search')?.value||'').toLowerCase().trim();
+
+  let filtered = allOrders;
+
+  // Status filter
+  if(activeFilter !== 'all'){
+    filtered = filtered.filter(o=>(o.paymentStatus||'').toLowerCase() === activeFilter);
+  }
+
+  // Text search — match phone, item name, item type
+  if(q){
+    filtered = filtered.filter(o=>{
+      const phone = (o.phone||'').replace('whatsapp:','').toLowerCase();
+      const item  = (o.item?.name||'').toLowerCase();
+      const type  = (o.item?.type||'').toLowerCase();
+      const status= (o.paymentStatus||'').toLowerCase();
+      return phone.includes(q) || item.includes(q) || type.includes(q) || status.includes(q);
+    });
+  }
+
+  renderFilteredOrders(filtered, q || activeFilter !== 'all');
+}
+
+function renderFilteredOrders(orders, isFiltered){
+  const tbody = document.getElementById('orders-tbody');
+  const countEl = document.getElementById('results-count');
+  const numEl = document.getElementById('results-num');
+
+  if(isFiltered){
+    countEl.style.display = 'block';
+    numEl.textContent = orders.length;
+  } else {
+    countEl.style.display = 'none';
+  }
+
+  if(!allOrders.length){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No orders yet</div><div class="empty-sub">Orders will appear here once customers start ordering</div></div></td></tr>';
+    return;
+  }
+
+  if(!orders.length){
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No orders match</div><div class="empty-sub">Try a different search or filter</div></div></td></tr>';
+    return;
+  }
+
+  const q = (document.getElementById('order-search')?.value||'').toLowerCase().trim();
+
+  tbody.innerHTML = orders.map((o,i)=>{
+    // Support both new multi-item orders and old single-item orders
+    const items = o.items || (o.item ? [{...o.item, qty:1}] : []);
+    const total = o.total || items.reduce((s,it)=>s+(it.price*(it.qty||1)),0);
+    const itemHtml = items.map(it=>{
+      const e = it.type==='Veg'?'🥦':'🍗';
+      return `<div style="font-size:12px">${e} ${highlight(esc(it.name),q)} x${it.qty||1} <span style="color:var(--muted)">₹${it.price*(it.qty||1)}</span></div>`;
+    }).join('');
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${i+1}</td>
+      <td><span class="phone-mono">${highlight(esc(o.phone.replace('whatsapp:','')),q)}</span></td>
+      <td>${itemHtml}</td>
+      <td style="font-family:var(--mono);color:var(--accent);font-weight:600">₹${total}</td>
+      <td><span class="status-pill ${(o.paymentStatus||'').toLowerCase()}">${o.paymentStatus||'—'}</span></td>
+      <td style="color:var(--muted);font-size:12px">${formatTime(o.createdAt)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function highlight(text, q){
+  if(!q) return text;
+  const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return text.replace(re,'<mark style="background:#3d3010;color:var(--accent);border-radius:2px;padding:0 2px">$1</mark>');
+}
+
+// ══ Helpers ══
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
+function formatTime(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+let toastTimer;
+function toast(msg,type='success'){
+  const el = document.getElementById('toast');
+  el.textContent = (type==='success'?'✓ ':'✕ ')+msg;
+  el.className = 'show '+type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.className=''; },3000);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

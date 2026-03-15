@@ -1,0 +1,41 @@
+[
+  { "id": 1,  "category": "Fried Rice",  "name": "Veg Fried Rice",         "type": "Veg",     "price": 120, "description": "Aromatic basmati rice with fresh vegetables" },
+  { "id": 2,  "category": "Fried Rice",  "name": "Egg Fried Rice",          "type": "Non-Veg", "price": 130, "description": "Fluffy rice stir-fried with fresh eggs" },
+  { "id": 3,  "category": "Fried Rice",  "name": "Chicken Fried Rice",      "type": "Non-Veg", "price": 160, "description": "Wok-tossed rice with juicy chicken pieces" },
+
+  { "id": 4,  "category": "Noodles",     "name": "Veg Noodles",             "type": "Veg",     "price": 110, "description": "Stir-fried noodles with fresh vegetables" },
+  { "id": 5,  "category": "Noodles",     "name": "Egg Noodles",             "type": "Non-Veg", "price": 120, "description": "Noodles tossed with egg and spices" },
+  { "id": 6,  "category": "Noodles",     "name": "Chicken Noodles",         "type": "Non-Veg", "price": 150, "description": "Stir-fried noodles with tender chicken pieces" },
+
+  { "id": 7,  "category": "Sandwich",    "name": "Veg Sandwich",            "type": "Veg",     "price": 80,  "description": "Grilled sandwich with fresh veggies and cheese" },
+  { "id": 8,  "category": "Sandwich",    "name": "Chicken Sandwich",        "type": "Non-Veg", "price": 110, "description": "Toasted sandwich with spiced chicken filling" },
+
+  { "id": 9,  "category": "Maggies",     "name": "Veg Maggie",              "type": "Veg",     "price": 70,  "description": "Classic masala Maggie with veggies" },
+  { "id": 10, "category": "Maggies",     "name": "Egg Maggie",              "type": "Non-Veg", "price": 90,  "description": "Masala Maggie topped with a fried egg" },
+  { "id": 11, "category": "Maggies",     "name": "Chicken Maggie",          "type": "Non-Veg", "price": 110, "description": "Spicy Maggie loaded with chicken pieces" },
+
+  { "id": 12, "category": "Frankie",     "name": "Veg Frankie",             "type": "Veg",     "price": 90,  "description": "Spiced veggie filling wrapped in soft roti" },
+  { "id": 13, "category": "Frankie",     "name": "Paneer Frankie",          "type": "Veg",     "price": 110, "description": "Juicy paneer tikka wrapped in a soft roti" },
+  { "id": 14, "category": "Frankie",     "name": "Chicken Frankie",         "type": "Non-Veg", "price": 130, "description": "Spiced chicken wrapped in a fresh roti roll" },
+
+  { "id": 15, "category": "Juices",      "name": "Fresh Orange Juice",      "type": "Veg",     "price": 80,  "description": "Freshly squeezed orange juice" },
+  { "id": 16, "category": "Juices",      "name": "Watermelon Juice",        "type": "Veg",     "price": 70,  "description": "Chilled fresh watermelon juice" },
+  { "id": 17, "category": "Juices",      "name": "Mixed Fruit Juice",       "type": "Veg",     "price": 90,  "description": "Blend of seasonal fresh fruits" },
+
+  { "id": 18, "category": "Snacks",      "name": "Veg Manchurian",          "type": "Veg",     "price": 140, "description": "Crispy vegetable dumplings in spicy sauce" },
+  { "id": 19, "category": "Snacks",      "name": "Paneer 65",               "type": "Veg",     "price": 160, "description": "Crispy spiced paneer bites" },
+  { "id": 20, "category": "Snacks",      "name": "Chicken 65",              "type": "Non-Veg", "price": 200, "description": "Spicy deep-fried chicken starter" },
+  { "id": 21, "category": "Snacks",      "name": "French Fries",            "type": "Veg",     "price": 90,  "description": "Crispy golden salted fries" },
+
+  { "id": 22, "category": "Milkshakes",  "name": "Chocolate Milkshake",     "type": "Veg",     "price": 120, "description": "Rich creamy chocolate shake" },
+  { "id": 23, "category": "Milkshakes",  "name": "Strawberry Milkshake",    "type": "Veg",     "price": 120, "description": "Fresh strawberry blended with milk" },
+  { "id": 24, "category": "Milkshakes",  "name": "Vanilla Milkshake",       "type": "Veg",     "price": 110, "description": "Classic creamy vanilla shake" },
+
+  { "id": 25, "category": "Burgers",     "name": "Veg Burger",              "type": "Veg",     "price": 100, "description": "Crispy veg patty with fresh toppings" },
+  { "id": 26, "category": "Burgers",     "name": "Chicken Burger",          "type": "Non-Veg", "price": 140, "description": "Juicy chicken patty with sauces and veggies" },
+  { "id": 27, "category": "Burgers",     "name": "Paneer Burger",           "type": "Veg",     "price": 120, "description": "Spiced paneer patty in a soft bun" },
+
+  { "id": 28, "category": "Mocktails",   "name": "Virgin Mojito",           "type": "Veg",     "price": 100, "description": "Refreshing mint lime cooler" },
+  { "id": 29, "category": "Mocktails",   "name": "Blue Lagoon",             "type": "Veg",     "price": 110, "description": "Chilled blue curacao mocktail" },
+  { "id": 30, "category": "Mocktails",   "name": "Watermelon Mint Cooler",  "type": "Veg",     "price": 100, "description": "Fresh watermelon blended with mint" }
+]
