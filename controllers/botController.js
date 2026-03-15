@@ -158,7 +158,8 @@ async function handleIncomingMessage(req, res) {
       }
 
       if (session.step === 'AWAITING_PAYMENT') {
-        const order = getLatestOrderByPhone(from);
+        // ✅ CHANGED: added await
+        const order = await getLatestOrderByPhone(from);
         if (order && order.paymentStatus === 'PENDING') {
           await sendMessage(from,
             '⏳ You have a pending payment.\n\n' +
@@ -322,7 +323,8 @@ async function handleCheckout(from) {
     return;
   }
 
-  const order = createOrder({ phone: from, cart, paymentLinkId, paymentLinkUrl });
+  // ✅ CHANGED: added await
+  const order = await createOrder({ phone: from, cart, paymentLinkId, paymentLinkUrl });
   clearCart(from);
   setSession(from, { step: 'AWAITING_PAYMENT', orderId: order.id });
 
@@ -337,7 +339,8 @@ async function handleCheckout(from) {
 }
 
 async function handleStatus(from) {
-  const order = getLatestOrderByPhone(from);
+  // ✅ CHANGED: added await
+  const order = await getLatestOrderByPhone(from);
 
   if (!order) {
     await sendMessage(from,
