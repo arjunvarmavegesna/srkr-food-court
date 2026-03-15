@@ -25,7 +25,7 @@ function getCategoryEmoji(cat) {
 
 let _menuCache    = null;
 let _menuCacheTime = 0;
-const CACHE_TTL   = 30 * 1000;
+const CACHE_TTL = 0;
 
 async function getMenu() {
   const now = Date.now();
