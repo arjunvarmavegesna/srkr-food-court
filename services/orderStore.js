@@ -1,32 +1,18 @@
 'use strict';
 
-const admin = require('firebase-admin');
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
-}
-
-const db = admin.firestore();
+// Firebase is initialised in config/firebase.js — import db from there
+const db = require('../config/firebase');
 const { v4: uuidv4 } = require('uuid');
 
-// ── In-memory sessions (temporary per-conversation, fine in-memory) ───────────
+// ── In-memory sessions ────────────────────────────────────────────────────────
+// Sessions are short-lived (one conversation) so in-memory is fine.
+// If you ever run multiple Railway replicas, move these to Firestore too.
 
 const sessions = {};
 
 function getSession(phone) {
   if (!sessions[phone]) {
-    sessions[phone] = {
-      step: 'WELCOME',
-      selectedCategory: null,
-      cart: [],
-      orderId: null,
-    };
+    sessions[phone] = { step: 'WELCOME', selectedCategory: null, cart: [], orderId: null };
   }
   return sessions[phone];
 }
@@ -36,19 +22,14 @@ function setSession(phone, data) {
 }
 
 function resetSession(phone) {
-  sessions[phone] = {
-    step: 'WELCOME',
-    selectedCategory: null,
-    cart: [],
-    orderId: null,
-  };
+  sessions[phone] = { step: 'WELCOME', selectedCategory: null, cart: [], orderId: null };
 }
 
-// ── Cart helpers (in-memory, fine) ────────────────────────────────────────────
+// ── Cart helpers (in-memory) ──────────────────────────────────────────────────
 
 function addToCart(phone, item) {
-  const session = getSession(phone);
-  const cart = session.cart || [];
+  const session  = getSession(phone);
+  const cart     = session.cart || [];
   const existing = cart.find(c => c.id === item.id);
   if (existing) {
     existing.qty += 1;
@@ -61,7 +42,7 @@ function addToCart(phone, item) {
 
 function removeFromCart(phone, itemId) {
   const session = getSession(phone);
-  const cart = (session.cart || []).filter(c => c.id !== itemId);
+  const cart    = (session.cart || []).filter(c => c.id !== itemId);
   setSession(phone, { cart });
   return cart;
 }
@@ -78,7 +59,7 @@ function getCartTotal(phone) {
   return getCart(phone).reduce((sum, c) => sum + c.price * c.qty, 0);
 }
 
-// ── Orders (Firestore) ────────────────────────────────────────────────────────
+// ── Orders — Firestore ────────────────────────────────────────────────────────
 
 async function createOrder({ phone, cart, paymentLinkId, paymentLinkUrl }) {
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
@@ -86,7 +67,7 @@ async function createOrder({ phone, cart, paymentLinkId, paymentLinkUrl }) {
     id: uuidv4(),
     phone,
     items: cart.map(c => ({
-      id: c.id, name: c.name, category: c.category,
+      id: c.id, name: c.name, category: c.category || '',
       type: c.type, price: c.price, qty: c.qty,
     })),
     total,
@@ -110,9 +91,8 @@ async function getOrderByPaymentLinkId(paymentLinkId) {
     console.warn(`⚠️  No order found for paymentLinkId=${paymentLinkId}`);
     return null;
   }
-  const found = snap.docs[0].data();
   console.log(`🔍 Lookup paymentLinkId=${paymentLinkId} → FOUND`);
-  return found;
+  return snap.docs[0].data();
 }
 
 async function getLatestOrderByPhone(phone) {
@@ -134,11 +114,8 @@ async function updateOrderPaymentStatus(paymentLinkId, status) {
     console.warn(`⚠️  updateStatus: no order for ${paymentLinkId}`);
     return null;
   }
-  const doc = snap.docs[0];
-  const updated = {
-    paymentStatus: status,
-    updatedAt: new Date().toISOString(),
-  };
+  const doc     = snap.docs[0];
+  const updated = { paymentStatus: status, updatedAt: new Date().toISOString() };
   await doc.ref.update(updated);
   console.log(`💾 Order ${doc.id} status → ${status}`);
   return { ...doc.data(), ...updated };
@@ -152,8 +129,11 @@ async function getAllOrders() {
 }
 
 module.exports = {
+  // Session (sync)
   getSession, setSession, resetSession,
+  // Cart (sync)
   addToCart, removeFromCart, clearCart, getCart, getCartTotal,
+  // Orders (async)
   createOrder, getOrderByPaymentLinkId,
   getLatestOrderByPhone, updateOrderPaymentStatus, getAllOrders,
 };
