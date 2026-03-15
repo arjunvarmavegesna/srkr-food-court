@@ -87,7 +87,7 @@ async function handleIncomingMessage(req, res) {
     if (upper === 'CLEAR' || normalized === 'CLEAR') {
       clearCart(from);
       setSession(from, { step: 'AWAITING_CATEGORY' });
-      await sendMessage(from, '🗑️ Cart cleared!\n\n' + formatCategoryMessage());
+      await sendMessage(from, '🗑️ Cart cleared!\n\n' + await formatCategoryMessage());
       return;
     }
 
@@ -112,7 +112,7 @@ async function handleIncomingMessage(req, res) {
     if (upper === 'BACK' || upper === 'CATEGORIES' || normalized === 'BACK' || normalized === 'CATEGORIES') {
       setSession(from, { step: 'AWAITING_CATEGORY', selectedCategory: null });
       const cart = getCart(from);
-      let msg = formatCategoryMessage();
+      let msg = await formatCategoryMessage();
       if (cart.length) {
         msg += '\n\n🛒 *Cart: ' + cart.length + ' item(s) — ₹' + getCartTotal(from) + '*\nType *CART* to view or *CHECKOUT* to pay';
       }
@@ -120,7 +120,7 @@ async function handleIncomingMessage(req, res) {
       return;
     }
 
-    // CHECKOUT / CONFIRM and all variations
+    // CHECKOUT
     if (isCheckout(upper, normalized)) {
       await handleCheckout(from);
       return;
@@ -134,7 +134,7 @@ async function handleIncomingMessage(req, res) {
         'We are delighted to have you here. 😊\n' +
         'Pick a category to start adding items to your cart!'
       );
-      await sendMessage(from, formatCategoryMessage());
+      await sendMessage(from, await formatCategoryMessage());
       setSession(from, { step: 'AWAITING_CATEGORY' });
       return;
     }
@@ -158,7 +158,6 @@ async function handleIncomingMessage(req, res) {
       }
 
       if (session.step === 'AWAITING_PAYMENT') {
-        // ✅ CHANGED: added await
         const order = await getLatestOrderByPhone(from);
         if (order && order.paymentStatus === 'PENDING') {
           await sendMessage(from,
@@ -168,13 +167,12 @@ async function handleIncomingMessage(req, res) {
           );
         } else {
           resetSession(from);
-          await sendMessage(from, formatCategoryMessage());
+          await sendMessage(from, await formatCategoryMessage());
           setSession(from, { step: 'AWAITING_CATEGORY' });
         }
         return;
       }
 
-      // Default — treat as category selection
       await handleCategorySelection(from, body);
       return;
     }
@@ -200,7 +198,7 @@ async function handleIncomingMessage(req, res) {
     // Final fallback
     resetSession(from);
     await sendMessage(from, '🍽️ *Welcome to ' + config.restaurant.name + '!*\n\nHere are our categories:');
-    await sendMessage(from, formatCategoryMessage());
+    await sendMessage(from, await formatCategoryMessage());
     setSession(from, { step: 'AWAITING_CATEGORY' });
 
   } catch (err) {
@@ -210,7 +208,7 @@ async function handleIncomingMessage(req, res) {
 }
 
 async function handleCategorySelection(from, number) {
-  const cats = getCategories();
+  const cats = await getCategories();
   const idx  = parseInt(number, 10);
 
   if (isNaN(idx) || idx < 1 || idx > cats.length) {
@@ -224,7 +222,7 @@ async function handleCategorySelection(from, number) {
   setSession(from, { step: 'AWAITING_ITEM', selectedCategory: category });
 
   const cart = getCart(from);
-  let msg = formatCategoryItemsMessage(category);
+  let msg = await formatCategoryItemsMessage(category);
   if (cart.length) {
     msg += '\n\n🛒 *Cart: ' + cart.length + ' item(s) — ₹' + getCartTotal(from) + '*';
   }
@@ -236,12 +234,12 @@ async function handleItemSelection(from, number, session) {
 
   if (!category) {
     setSession(from, { step: 'AWAITING_CATEGORY' });
-    await sendMessage(from, formatCategoryMessage());
+    await sendMessage(from, await formatCategoryMessage());
     return;
   }
 
-  const item  = getItemByCategoryAndNumber(category, number);
-  const items = getItemsByCategory(category);
+  const item  = await getItemByCategoryAndNumber(category, number);
+  const items = await getItemsByCategory(category);
 
   if (!item) {
     await sendMessage(from,
@@ -282,7 +280,7 @@ async function handleRemoveItem(from, number) {
   if (!newCart.length) {
     setSession(from, { step: 'AWAITING_CATEGORY' });
     await sendMessage(from,
-      '🗑️ *' + item.name + '* removed.\n\nYour cart is now empty.\n\n' + formatCategoryMessage()
+      '🗑️ *' + item.name + '* removed.\n\nYour cart is now empty.\n\n' + await formatCategoryMessage()
     );
   } else {
     setSession(from, { step: 'AWAITING_CATEGORY' });
@@ -323,7 +321,6 @@ async function handleCheckout(from) {
     return;
   }
 
-  // ✅ CHANGED: added await
   const order = await createOrder({ phone: from, cart, paymentLinkId, paymentLinkUrl });
   clearCart(from);
   setSession(from, { step: 'AWAITING_PAYMENT', orderId: order.id });
@@ -339,7 +336,6 @@ async function handleCheckout(from) {
 }
 
 async function handleStatus(from) {
-  // ✅ CHANGED: added await
   const order = await getLatestOrderByPhone(from);
 
   if (!order) {
