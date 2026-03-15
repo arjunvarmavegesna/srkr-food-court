@@ -2,11 +2,13 @@
 
 const express = require('express');
 const router = express.Router();
-const admin = require('firebase-admin');
 const { getAllOrders } = require('../services/orderStore');
 
-const db = admin.firestore();
-const MENU_DOC = db.collection('config').doc('menu');
+// ── Lazy Firestore init — avoids "called before app init" error ───────────────
+function getMenuDoc() {
+  const admin = require('firebase-admin');
+  return admin.firestore().collection('config').doc('menu');
+}
 
 function authCheck(req, res, next) {
   const apiKey = req.headers['x-api-key'];
@@ -25,10 +27,11 @@ router.get('/', (req, res) => {
 // GET /admin/menu
 router.get('/menu', authCheck, async (req, res) => {
   try {
-    const doc = await MENU_DOC.get();
+    const doc = await getMenuDoc().get();
     const menu = doc.exists ? doc.data().items : [];
     res.json(menu);
   } catch (err) {
+    console.error('❌ GET /admin/menu error:', err.message);
     res.status(500).json({ error: 'Could not read menu: ' + err.message });
   }
 });
@@ -39,9 +42,11 @@ router.put('/menu', authCheck, async (req, res) => {
     const menu = req.body;
     if (!Array.isArray(menu)) return res.status(400).json({ error: 'Body must be an array' });
     menu.forEach((item, i) => { item.id = i + 1; });
-    await MENU_DOC.set({ items: menu });
+    await getMenuDoc().set({ items: menu });
+    console.log(`✅ Menu saved to Firestore: ${menu.length} items`);
     res.json({ success: true, count: menu.length });
   } catch (err) {
+    console.error('❌ PUT /admin/menu error:', err.message);
     res.status(500).json({ error: 'Could not write menu: ' + err.message });
   }
 });
@@ -49,6 +54,7 @@ router.put('/menu', authCheck, async (req, res) => {
 // POST /admin/menu — add single item
 router.post('/menu', authCheck, async (req, res) => {
   try {
+    const MENU_DOC = getMenuDoc();
     const doc = await MENU_DOC.get();
     const menu = doc.exists ? doc.data().items : [];
     const { name, type, price, category, description } = req.body;
@@ -63,8 +69,10 @@ router.post('/menu', authCheck, async (req, res) => {
     };
     menu.push(newItem);
     await MENU_DOC.set({ items: menu });
+    console.log(`✅ Item added to Firestore: ${newItem.name}`);
     res.json({ success: true, item: newItem });
   } catch (err) {
+    console.error('❌ POST /admin/menu error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -72,6 +80,7 @@ router.post('/menu', authCheck, async (req, res) => {
 // PATCH /admin/menu/:id — update single item
 router.patch('/menu/:id', authCheck, async (req, res) => {
   try {
+    const MENU_DOC = getMenuDoc();
     const doc = await MENU_DOC.get();
     const menu = doc.exists ? doc.data().items : [];
     const idx = menu.findIndex(i => i.id === Number(req.params.id));
@@ -81,6 +90,7 @@ router.patch('/menu/:id', authCheck, async (req, res) => {
     await MENU_DOC.set({ items: menu });
     res.json({ success: true, item: menu[idx] });
   } catch (err) {
+    console.error('❌ PATCH /admin/menu error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -88,6 +98,7 @@ router.patch('/menu/:id', authCheck, async (req, res) => {
 // DELETE /admin/menu/:id
 router.delete('/menu/:id', authCheck, async (req, res) => {
   try {
+    const MENU_DOC = getMenuDoc();
     const doc = await MENU_DOC.get();
     let menu = doc.exists ? doc.data().items : [];
     const before = menu.length;
@@ -97,6 +108,7 @@ router.delete('/menu/:id', authCheck, async (req, res) => {
     await MENU_DOC.set({ items: menu });
     res.json({ success: true, remaining: menu.length });
   } catch (err) {
+    console.error('❌ DELETE /admin/menu error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -113,6 +125,7 @@ router.get('/orders', authCheck, async (req, res) => {
       orders,
     });
   } catch (err) {
+    console.error('❌ GET /admin/orders error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
