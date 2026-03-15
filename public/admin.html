@@ -15,23 +15,13 @@
     --radius:12px;--radius-sm:8px;
   }
   body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px;line-height:1.6;}
-
-  /* ── Header ── */
-  header{
-    background:var(--surface);border-bottom:1px solid var(--border);
-    padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;
-    position:sticky;top:0;z-index:100;
-  }
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
   .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;letter-spacing:-.3px;}
   .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
   .logo span{color:var(--accent);}
   .header-right{display:flex;align-items:center;gap:12px;}
   .badge{background:#2a2218;color:var(--accent);border:1px solid #3d3010;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;font-family:var(--mono);}
-
-  /* ── Layout ── */
   .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 60px);}
-  
-  /* ── Sidebar ── */
   aside{background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 0;}
   .nav-section{padding:0 1rem;margin-bottom:1.5rem;}
   .nav-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;padding:0 .75rem;margin-bottom:.5rem;}
@@ -40,18 +30,12 @@
   .nav-item.active{background:#2a2010;color:var(--accent);}
   .nav-item svg{flex-shrink:0;}
   .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--success);margin-left:auto;}
-
-  /* ── Main ── */
   main{padding:2rem;overflow-y:auto;}
   .page{display:none;}
   .page.active{display:block;}
-
-  /* ── Page header ── */
   .page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;}
   .page-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
   .page-sub{color:var(--muted);font-size:13px;margin-top:3px;}
-
-  /* ── Buttons ── */
   .btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:var(--font);}
   .btn-primary{background:var(--accent);color:#0f0e0d;}
   .btn-primary:hover{background:#f7b84a;}
@@ -62,8 +46,6 @@
   .btn-success{background:#1a3328;color:var(--success);border:1px solid #1e4535;}
   .btn-success:hover{background:#1e3d2f;}
   .btn-sm{padding:.35rem .75rem;font-size:12px;}
-
-  /* ── Stats row ── */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem;}
   .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;}
   .stat-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
@@ -71,17 +53,8 @@
   .stat-value.accent{color:var(--accent);}
   .stat-value.green{color:var(--success);}
   .stat-value.red{color:var(--danger);}
-  .stat-change{font-size:11px;color:var(--muted);margin-top:4px;}
-
-  /* ── Table / Menu cards ── */
-  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
-  .section-title{font-size:15px;font-weight:600;}
-  
   .menu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;}
-  .menu-card{
-    background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-    padding:1.25rem;position:relative;transition:border-color .2s;
-  }
+  .menu-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;position:relative;transition:border-color .2s;}
   .menu-card:hover{border-color:#3a3835;}
   .menu-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;}
   .item-num{width:28px;height:28px;border-radius:6px;background:#2a2010;color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
@@ -92,11 +65,8 @@
   .item-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:1rem;}
   .item-price-row{display:flex;align-items:center;justify-content:space-between;}
   .item-price{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent);}
-  .item-price span{font-size:13px;font-weight:400;color:var(--muted);}
   .card-actions{display:flex;gap:6px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
   .card-actions .btn{flex:1;justify-content:center;}
-
-  /* ── Modal ── */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s;}
   .modal-overlay.open{opacity:1;pointer-events:all;}
   .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .2s;}
@@ -107,8 +77,6 @@
   .modal-close:hover{color:var(--text);}
   .modal-body{padding:1.5rem;}
   .modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;}
-
-  /* ── Form ── */
   .form-group{margin-bottom:1.25rem;}
   .form-label{display:block;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
   .form-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem 1rem;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .15s;}
@@ -119,8 +87,6 @@
   .price-input-wrap{position:relative;}
   .price-input-wrap::before{content:'₹';position:absolute;left:.9rem;top:50%;transform:translateY(-50%);color:var(--muted);font-family:var(--mono);}
   .price-input-wrap .form-input{padding-left:2rem;}
-
-  /* ── Orders table ── */
   .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
   table{width:100%;border-collapse:collapse;}
   thead{background:#1e1d1b;}
@@ -133,51 +99,31 @@
   .status-pill.failed{background:#2a0e0e;color:var(--danger);}
   .status-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
   .phone-mono{font-family:var(--mono);font-size:12px;color:var(--muted);}
-
-  /* ── Toast ── */
   #toast{position:fixed;bottom:2rem;right:2rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.75rem 1.25rem;font-size:13px;font-weight:500;transform:translateY(100px);opacity:0;transition:all .25s;z-index:999;max-width:300px;}
   #toast.show{transform:translateY(0);opacity:1;}
   #toast.success{border-color:#1e4535;color:var(--success);}
   #toast.error{border-color:#4a1a1a;color:var(--danger);}
-
-  /* ── Empty state ── */
   .empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
   .empty-icon{font-size:40px;margin-bottom:.75rem;}
   .empty-text{font-size:15px;font-weight:500;}
   .empty-sub{font-size:13px;margin-top:.25rem;}
-
-
-  /* ── Search & Filter bar ── */
   .search-bar{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
   .search-wrap{position:relative;flex:1;}
   .search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
-  .search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);
-    padding:.6rem 1rem .6rem 2.5rem;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s;}
+  .search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem 1rem .6rem 2.5rem;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s;}
   .search-input:focus{border-color:var(--accent);}
   .search-input::placeholder{color:#555;}
-  .filter-btn{padding:.55rem .9rem;border-radius:var(--radius-sm);font-size:12px;font-weight:600;
-    cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);
-    font-family:var(--font);transition:all .15s;white-space:nowrap;}
+  .filter-btn{padding:.55rem .9rem;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--font);transition:all .15s;white-space:nowrap;}
   .filter-btn:hover{color:var(--text);border-color:#3a3835;}
   .filter-btn.active{background:#2a2010;color:var(--accent);border-color:#3d3010;}
   .results-count{font-size:12px;color:var(--muted);margin-bottom:.75rem;}
   .results-count span{color:var(--text);font-weight:600;}
-
-  /* ── Delete confirm ── */
   .delete-confirm{background:#1a0e0e;border:1px solid #3a1a1a;border-radius:var(--radius);padding:1.5rem;text-align:center;}
   .delete-confirm p{color:var(--muted);font-size:13px;margin:.5rem 0 1.25rem;}
-
-  /* ── Scrollbar ── */
   ::-webkit-scrollbar{width:5px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
-
-  /* ── Responsive ── */
-  @media(max-width:768px){
-    .layout{grid-template-columns:1fr;}
-    aside{display:none;}
-    .stats{grid-template-columns:repeat(2,1fr);}
-  }
+  @media(max-width:768px){.layout{grid-template-columns:1fr;}aside{display:none;}.stats{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
 <body>
@@ -224,8 +170,7 @@
   </aside>
 
   <main>
-
-    <!-- ══ MENU PAGE ══ -->
+    <!-- MENU PAGE -->
     <div class="page" id="page-menu">
       <div class="page-header">
         <div>
@@ -237,20 +182,18 @@
           Add Item
         </button>
       </div>
-
-      <div class="stats" id="menu-stats">
+      <div class="stats">
         <div class="stat-card"><div class="stat-label">Total Items</div><div class="stat-value accent" id="stat-total">0</div></div>
         <div class="stat-card"><div class="stat-label">Veg Items</div><div class="stat-value green" id="stat-veg">0</div></div>
         <div class="stat-card"><div class="stat-label">Non-Veg Items</div><div class="stat-value red" id="stat-nonveg">0</div></div>
         <div class="stat-card"><div class="stat-label">Avg Price</div><div class="stat-value" id="stat-avg" style="font-size:20px;">₹0</div></div>
       </div>
-
       <div class="menu-grid" id="menu-grid">
         <div class="empty"><div class="empty-icon">🍽</div><div class="empty-text">Loading menu...</div></div>
       </div>
     </div>
 
-    <!-- ══ ADD ITEM PAGE ══ -->
+    <!-- ADD ITEM PAGE -->
     <div class="page" id="page-add">
       <div class="page-header">
         <div>
@@ -258,7 +201,6 @@
           <div class="page-sub">Fill in the details below to add to the menu</div>
         </div>
       </div>
-
       <div style="max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem;">
         <input type="hidden" id="edit-id"/>
         <div class="form-group">
@@ -301,7 +243,7 @@
       </div>
     </div>
 
-    <!-- ══ ORDERS PAGE ══ -->
+    <!-- ORDERS PAGE -->
     <div class="page" id="page-orders">
       <div class="page-header">
         <div>
@@ -313,14 +255,12 @@
           Refresh
         </button>
       </div>
-
-      <div class="stats" id="order-stats">
+      <div class="stats">
         <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value" id="o-total">0</div></div>
         <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value green" id="o-paid">0</div></div>
         <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value accent" id="o-pending">0</div></div>
         <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value" id="o-revenue" style="font-size:18px;">₹0</div></div>
       </div>
-
       <div class="search-bar">
         <div class="search-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -332,18 +272,10 @@
         <button class="filter-btn" id="filter-failed" onclick="setFilter('failed',this)">Failed</button>
       </div>
       <div class="results-count" id="results-count" style="display:none">Showing <span id="results-num">0</span> orders</div>
-
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Phone</th>
-              <th>Item</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th>Time</th>
-            </tr>
+            <tr><th>#</th><th>Phone</th><th>Item</th><th>Price</th><th>Status</th><th>Time</th></tr>
           </thead>
           <tbody id="orders-tbody">
             <tr><td colspan="6"><div class="empty"><div class="empty-text">Loading orders...</div></div></td></tr>
@@ -352,7 +284,7 @@
       </div>
     </div>
 
-    <!-- ══ SETTINGS PAGE ══ -->
+    <!-- SETTINGS PAGE -->
     <div class="page" id="page-settings">
       <div class="page-header">
         <div>
@@ -365,7 +297,7 @@
           <div style="font-size:14px;font-weight:600;margin-bottom:1rem;">API Connection</div>
           <div class="form-group">
             <label class="form-label">Server URL</label>
-            <input type="text" class="form-input" id="cfg-url" placeholder="http://localhost:3000"/>
+            <input type="text" class="form-input" id="cfg-url" placeholder="https://srkr-food-court-production.up.railway.app"/>
           </div>
           <div class="form-group">
             <label class="form-label">Admin API Key</label>
@@ -379,11 +311,10 @@
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
-<!-- ══ EDIT MODAL ══ -->
+<!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
     <div class="modal-header">
@@ -431,7 +362,7 @@
   </div>
 </div>
 
-<!-- ══ DELETE MODAL ══ -->
+<!-- DELETE MODAL -->
 <div class="modal-overlay" id="delete-modal">
   <div class="modal" style="max-width:380px;">
     <div class="modal-body" style="padding:2rem;">
@@ -451,56 +382,39 @@
 <div id="toast"></div>
 
 <script>
-// ══ State ══
+// ── FIX 3: default URL points to Railway, not localhost ──
 let menuData = [];
 let editingIndex = null;
 let deletingIndex = null;
-let settings = { url: 'http://localhost:3000', key: '' };
+let settings = { url: 'https://srkr-food-court-production.up.railway.app', key: '' };
 
-// ══ State ══
-let currentPage = null; // track active page explicitly — never rely on DOM class
+let currentPage = null;
 
-// ══ Navigation ══
 function showPage(name){
-  // Guard: do nothing if already on this page
   if(currentPage === name) return;
   currentPage = name;
-
-  // Persist tab so page refresh/Live Server reload restores position
   localStorage.setItem('dfc_active_tab', name);
-
-  // Hide all pages, deactivate all nav items
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-  // Show target page
   const pageEl = document.getElementById('page-' + name);
   if(pageEl) pageEl.classList.add('active');
-
-  // Highlight correct nav button
   const navEl = document.getElementById('nav-' + name);
   if(navEl) navEl.classList.add('active');
-
-  // Lazy-load data only when tab is first opened
   if(name === 'orders') loadOrders();
   if(name === 'menu' && menuData.length === 0) loadMenu();
 }
 
-// ══ Init ══
 (function init(){
   const saved = localStorage.getItem('dfc_settings');
   if(saved){ try{ settings = {...settings,...JSON.parse(saved)}; }catch(e){} }
   document.getElementById('cfg-url').value = settings.url;
   document.getElementById('cfg-key').value = settings.key;
-
-  // Restore last active tab — so refreshes/Live Server reloads don't reset position
   const lastTab = localStorage.getItem('dfc_active_tab') || 'menu';
   showPage(lastTab);
-  if(lastTab !== 'menu') loadMenu(); // always preload menu data silently
+  if(lastTab !== 'menu') loadMenu();
   checkServer();
 })();
 
-// ══ Settings ══
 function saveSettings(){
   settings.url = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
   settings.key = document.getElementById('cfg-key').value.trim();
@@ -528,7 +442,7 @@ async function checkServer(){
   }
 }
 
-// ══ Load Menu from server OR local JSON ══
+// ── FIX 2: no hardcoded fallback — show empty state if Firestore is empty ──
 async function loadMenu(){
   try{
     const headers = settings.key ? {'x-api-key':settings.key} : {};
@@ -536,8 +450,7 @@ async function loadMenu(){
     if(!r.ok) throw new Error('status '+r.status);
     menuData = await r.json();
   }catch(e){
-    // Fallback: if server has no /admin/menu, use bundled data
-    if(menuData.length===0) menuData = getDefaultMenu();
+    console.error('Could not load menu:', e.message);
   }
   renderMenu();
 }
@@ -549,7 +462,6 @@ const CATEGORY_EMOJI = {
 };
 function getCatEmoji(cat){ return CATEGORY_EMOJI[cat] || '🍽️'; }
 
-// ══ Render Menu Cards grouped by category ══
 function renderMenu(){
   const veg   = menuData.filter(i=>i.type==='Veg').length;
   const nonveg= menuData.filter(i=>i.type==='Non-Veg').length;
@@ -560,18 +472,16 @@ function renderMenu(){
   document.getElementById('stat-avg').textContent    = '₹'+avg;
   document.getElementById('menu-count-badge').textContent = menuData.length+' items';
 
-  // Populate category datalist for add/edit forms
   const cats = [...new Set(menuData.map(i=>i.category).filter(Boolean))];
   const dl = document.getElementById('category-suggestions');
   if(dl) dl.innerHTML = cats.map(c=>`<option value="${esc(c)}">`).join('');
 
   const grid = document.getElementById('menu-grid');
   if(!menuData.length){
-    grid.innerHTML = `<div class="empty"><div class="empty-icon">🍽</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your first menu item</div></div>`;
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">🍽</div><div class="empty-text">No items yet</div><div class="empty-sub">Add your first menu item using the Add New Item button</div></div>`;
     return;
   }
 
-  // Group by category
   const groups = {};
   menuData.forEach((item, i) => {
     const cat = item.category || 'Uncategorised';
@@ -618,7 +528,6 @@ function renderMenu(){
   grid.innerHTML = html;
 }
 
-// ══ Add Item ══
 function saveItem(){
   const name     = document.getElementById('f-name').value.trim();
   const category = document.getElementById('f-category').value.trim();
@@ -639,6 +548,7 @@ function saveItem(){
   }
   saveMenuToServer();
   resetForm();
+  showPage('menu');
   renderMenu();
 }
 
@@ -652,7 +562,6 @@ function resetForm(){
   document.getElementById('add-page-title').textContent='Add New Item';
 }
 
-// ══ Edit Modal ══
 function openEdit(i){
   editingIndex = i;
   const item = menuData[i];
@@ -681,7 +590,6 @@ function saveEdit(){
   toast('Changes saved ✅','success');
 }
 
-// ══ Delete ══
 function openDelete(i){
   deletingIndex = i;
   document.getElementById('delete-item-name').textContent = 'Delete "'+menuData[i].name+'"?';
@@ -692,7 +600,6 @@ function confirmDelete(){
   if(deletingIndex===null) return;
   const name = menuData[deletingIndex].name;
   menuData.splice(deletingIndex,1);
-  // Re-assign ids
   menuData.forEach((item,i)=>{ item.id = i+1; });
   saveMenuToServer();
   closeModal('delete-modal');
@@ -700,23 +607,23 @@ function confirmDelete(){
   toast(name+' removed','success');
 }
 
-// ══ Save Menu to Server ══
 async function saveMenuToServer(){
   try{
     const headers = {'Content-Type':'application/json'};
     if(settings.key) headers['x-api-key'] = settings.key;
-    await fetch(settings.url+'/admin/menu',{
+    const r = await fetch(settings.url+'/admin/menu',{
       method:'PUT',headers,
       body:JSON.stringify(menuData),
       signal:AbortSignal.timeout(5000)
     });
+    if(!r.ok) throw new Error('status '+r.status);
+    console.log('✅ Menu saved to Firestore');
   }catch(e){
-    // Server save failed — data still in memory for this session
-    console.warn('Could not sync to server:',e.message);
+    toast('Failed to save: '+e.message,'error');
+    console.error('Could not sync to server:',e.message);
   }
 }
 
-// ══ Orders ══
 let allOrders = [];
 let activeFilter = 'all';
 
@@ -728,7 +635,7 @@ async function loadOrders(){
     const r = await fetch(settings.url+'/admin/orders',{headers,signal:AbortSignal.timeout(5000)});
     if(!r.ok) throw new Error('status '+r.status);
     const data = await r.json();
-    allOrders = [...(data.orders||[])].reverse(); // newest first
+    allOrders = [...(data.orders||[])].reverse();
     updateOrderStats(data);
     filterOrders();
   }catch(e){
@@ -757,25 +664,19 @@ function setFilter(filter, btn){
 
 function filterOrders(){
   const q = (document.getElementById('order-search')?.value||'').toLowerCase().trim();
-
   let filtered = allOrders;
-
-  // Status filter
   if(activeFilter !== 'all'){
     filtered = filtered.filter(o=>(o.paymentStatus||'').toLowerCase() === activeFilter);
   }
-
-  // Text search — match phone, item name, item type
   if(q){
     filtered = filtered.filter(o=>{
       const phone = (o.phone||'').replace('whatsapp:','').toLowerCase();
-      const item  = (o.item?.name||'').toLowerCase();
-      const type  = (o.item?.type||'').toLowerCase();
+      const items = o.items||[];
+      const itemNames = items.map(i=>i.name||'').join(' ').toLowerCase();
       const status= (o.paymentStatus||'').toLowerCase();
-      return phone.includes(q) || item.includes(q) || type.includes(q) || status.includes(q);
+      return phone.includes(q) || itemNames.includes(q) || status.includes(q);
     });
   }
-
   renderFilteredOrders(filtered, q || activeFilter !== 'all');
 }
 
@@ -783,28 +684,20 @@ function renderFilteredOrders(orders, isFiltered){
   const tbody = document.getElementById('orders-tbody');
   const countEl = document.getElementById('results-count');
   const numEl = document.getElementById('results-num');
-
-  if(isFiltered){
-    countEl.style.display = 'block';
-    numEl.textContent = orders.length;
-  } else {
-    countEl.style.display = 'none';
-  }
+  if(isFiltered){ countEl.style.display='block'; numEl.textContent=orders.length; }
+  else { countEl.style.display='none'; }
 
   if(!allOrders.length){
     tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No orders yet</div><div class="empty-sub">Orders will appear here once customers start ordering</div></div></td></tr>';
     return;
   }
-
   if(!orders.length){
     tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">No orders match</div><div class="empty-sub">Try a different search or filter</div></div></td></tr>';
     return;
   }
 
   const q = (document.getElementById('order-search')?.value||'').toLowerCase().trim();
-
   tbody.innerHTML = orders.map((o,i)=>{
-    // Support both new multi-item orders and old single-item orders
     const items = o.items || (o.item ? [{...o.item, qty:1}] : []);
     const total = o.total || items.reduce((s,it)=>s+(it.price*(it.qty||1)),0);
     const itemHtml = items.map(it=>{
@@ -828,7 +721,6 @@ function highlight(text, q){
   return text.replace(re,'<mark style="background:#3d3010;color:var(--accent);border-radius:2px;padding:0 2px">$1</mark>');
 }
 
-// ══ Helpers ══
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
@@ -847,7 +739,6 @@ function toast(msg,type='success'){
   toastTimer = setTimeout(()=>{ el.className=''; },3000);
 }
 
-// Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
 });
